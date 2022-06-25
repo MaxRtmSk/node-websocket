@@ -3,6 +3,8 @@ import { httpServer } from "./src/http_server/index.js";
 import robot from "robotjs";
 import { WebSocketServer } from "ws";
 import { drawCircle } from "./src/drawCircle.js";
+import { drawSquare } from "./src/drawSquare.js";
+import { capturePrntScrn } from "./src/capturePrntScrn.js";
 
 const HTTP_PORT = 3000;
 
@@ -11,31 +13,12 @@ httpServer.listen(HTTP_PORT);
 
 const wss = new WebSocketServer({
   port: 8080,
-  perMessageDeflate: {
-    zlibDeflateOptions: {
-      // See zlib defaults.
-      chunkSize: 1024,
-      memLevel: 7,
-      level: 3,
-    },
-    zlibInflateOptions: {
-      chunkSize: 10 * 1024,
-    },
-    // Other options settable:
-    clientNoContextTakeover: true, // Defaults to negotiated value.
-    serverNoContextTakeover: true, // Defaults to negotiated value.
-    serverMaxWindowBits: 10, // Defaults to negotiated value.
-    // Below options specified as default values.
-    concurrencyLimit: 10, // Limits zlib concurrency for perf.
-    threshold: 1024, // Size (in bytes) below which messages
-    // should not be compressed if context takeover is disabled.
-  },
 });
 
 wss.on("connection", (ws) => {
-  ws.on("message", (message) => {
+  ws.on("message", async (message) => {
     const [event, argv] = message.toString().split(" ");
-    console.log(event);
+    console.log(event, argv);
     // console.log("received: %s", data);
 
     let { x, y } = robot.getMousePos();
@@ -57,12 +40,20 @@ wss.on("connection", (ws) => {
       drawCircle(argv);
     }
 
+    if (event === "draw_square") {
+      drawSquare(argv);
+    }
+
     if (event === "mouse_position") {
       ws.send(`mouse_position ${x},${y}`);
     }
-  });
 
-  //   ws.send("something");
+    if (event === "prnt_scrn") {
+      const result = capturePrntScrn({ x, y, h: 200, w: 200 });
+      const img_base = (await result.getBase64Async(Jimp.AUTO)).split(",")[1];
+      ws.send(`prnt_scrn ${img_base}`);
+    }
+  });
 });
 
 wss.on("close", () => {});
