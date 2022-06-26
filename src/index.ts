@@ -1,4 +1,3 @@
-import Jimp from "jimp";
 import { httpServer } from "./http_server/index";
 import robot from "robotjs";
 import { wss } from "./ws_server/index";
@@ -48,12 +47,8 @@ wss.on("connection", (ws: any) => {
     }
 
     if (command === "prnt_scrn") {
-      const result = capturePrntScrn({ x, y, h: 200, w: 200 });
-      const img_base = (await result.getBase64Async(Jimp.MIME_PNG)).split(
-        ","
-      )[1];
-      console.log(img_base);
-      !ws.send(`prnt_scrn ${img_base}`);
+      const base64_img = await capturePrntScrn({ x, y, h: 200, w: 200 });
+      ws.send(`prnt_scrn ${base64_img}`);
     }
   });
 });

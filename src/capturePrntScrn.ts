@@ -1,7 +1,7 @@
 import robot from "robotjs";
 import Jimp from "jimp";
 
-export function capturePrntScrn({ x, y, w, h }: any) {
+export const capturePrntScrn = async ({ x, y, w, h }: any) => {
   const pic = robot.screen.capture(x, y, w, h);
   const width = pic.byteWidth / pic.bytesPerPixel;
   const height = pic.height;
@@ -22,5 +22,6 @@ export function capturePrntScrn({ x, y, w, h }: any) {
         image.bitmap.data[i] = 255;
     }
   });
-  return image;
-}
+
+  return (await image.getBase64Async(Jimp.MIME_PNG)).split(",")[1];
+};
