@@ -29,7 +29,7 @@ class MyTransform extends Transform {
     try {
       const [command, argv1, argv2] = chunk.toString().split(" ");
       let res: string = command;
-      console.log(command);
+      console.log(`${command} Start, parametrs: ${argv1} ${argv2}`);
 
       let { x, y } = robot.getMousePos();
 
@@ -66,6 +66,8 @@ class MyTransform extends Transform {
         const base64_img = await capturePrntScrn({ x, y, h: 200, w: 200 });
         res = `prnt_scrn ${base64_img}`;
       }
+
+      console.log(`${command} End`);
 
       callback(null, `${res}\0`);
     } catch (error) {
