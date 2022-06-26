@@ -9,7 +9,8 @@ import { capturePrntScrn } from "./capturePrntScrn";
 import { drawRectangle } from "./drawRectangle";
 
 import type { WebSocket } from "ws";
-import internal, { pipeline, Transform } from "stream";
+import internal, { Transform } from "stream";
+import { pipeline } from "stream/promises";
 
 const HTTP_PORT = 3000;
 
@@ -77,29 +78,24 @@ class MyTransform extends Transform {
 }
 
 try {
-  wss
-    .on("connection", async (socket: WebSocket) => {
-      const stream = createWebSocketStream(socket, {
-        decodeStrings: false,
-        encoding: "utf8",
-        allowHalfOpen: false,
-      });
-      const transform = new MyTransform({
-        decodeStrings: false,
-        encoding: "utf8",
-      });
-
-      pipeline(stream, transform, stream, (err) => {
-        if (err) {
-          throw err;
-        }
-      });
-
-      socket.on("close", () => stream.destroy());
-    })
-    .on("close", () => {
-      console.log("Socket closed");
+  wss.on("connection", async (socket: WebSocket) => {
+    const stream = createWebSocketStream(socket, {
+      decodeStrings: false,
+      encoding: "utf8",
     });
+    const transform = new MyTransform({
+      decodeStrings: false,
+      encoding: "utf8",
+    });
+
+    await pipeline(stream, transform, stream);
+
+    socket.on("close", () => stream.destroy());
+  });
+
+  wss.on("close", () => {
+    console.log("Socket closed");
+  });
 } catch (error) {
   console.error("error", error);
 }
