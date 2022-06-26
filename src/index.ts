@@ -87,7 +87,6 @@ try {
       const transform = new MyTransform({
         decodeStrings: false,
         encoding: "utf8",
-        allowHalfOpen: false,
       });
 
       pipeline(stream, transform, stream, (err) => {
